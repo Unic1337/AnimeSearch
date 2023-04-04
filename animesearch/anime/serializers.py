@@ -37,7 +37,7 @@ class AnimeListSerializer(serializers.ModelSerializer):
 
 
 class AnimeRetrieveSerializer(serializers.ModelSerializer):
-    reviews = ReviewRetrieveSerializer(many=True)
+    #user_score = ReviewRetrieveSerializer(many=True)
 
     class Meta:
         model = Anime

@@ -30,6 +30,12 @@ class UserRetrieveSerializer(serializers.ModelSerializer):
         )
 
 
+class UserListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'image_url',)
+
+
 class FollowCreateSerializer(serializers.ModelSerializer):
     user_is_following = serializers.HiddenField(default=serializers.CurrentUserDefault())
 
@@ -39,7 +45,7 @@ class FollowCreateSerializer(serializers.ModelSerializer):
         validators = [
             UniqueTogetherValidator(
                 queryset=Follow.objects.all(),
-                fields=['user_is_following', 'user_is_being_followed']
+                fields=('user_is_following', 'user_is_being_followed',)
             )
         ]
 
@@ -54,8 +60,16 @@ class FollowRetrieveSerializer(serializers.ModelSerializer):
 
 
 class FollowUserIsFollowingSerializer(serializers.ModelSerializer):
-    user_is_following = UserRetrieveSerializer(many=True)
+    user_is_following = UserListSerializer()
 
     class Meta:
         model = Follow
-        fields = ['user_is_following']
+        fields = ('user_is_following',)
+
+
+class FollowUserIsBeingFollowedSerializer(serializers.ModelSerializer):
+    user_is_being_followed = UserListSerializer()
+
+    class Meta:
+        model = Follow
+        fields = ('user_is_being_followed', 'date_created',)

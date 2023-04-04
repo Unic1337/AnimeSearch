@@ -21,7 +21,9 @@ class AnimeReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         user = self.request.user.id
         queryset = Anime.objects.all().annotate(
-            user_score=models.Q(reviews__user=user)
+            user_score=models.Case(
+                models.When(models.Q(reviews__user=user), then=models.F('reviews__score'))
+            )
         )
         return queryset
 

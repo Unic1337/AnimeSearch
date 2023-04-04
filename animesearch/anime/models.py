@@ -26,6 +26,7 @@ class Anime(models.Model):
     year = models.PositiveSmallIntegerField(null=True)
     studios = models.JSONField()
     genres = models.JSONField()
+    # themes
 
     class Meta:
         managed = False
@@ -55,9 +56,9 @@ class Review(models.Model):
     user = models.ForeignKey(User, related_name='reviews', on_delete=models.CASCADE)
     anime = models.ForeignKey(Anime, related_name='reviews', on_delete=models.CASCADE)
     score = models.PositiveSmallIntegerField()
-    date_added = models.DateTimeField(name='date_added', auto_now_add=True)
-    title = models.CharField(name='title', max_length=100, blank=True, null=True)
-    body = models.TextField(name='body', blank=True, null=True)
+    date_added = models.DateTimeField(auto_now_add=True)
+    title = models.CharField(max_length=100, blank=True, null=True)
+    body = models.TextField(blank=True, null=True)
 
     class Meta:
         verbose_name = 'Review'

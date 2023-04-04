@@ -5,8 +5,12 @@ from django.contrib.auth import get_user_model
 from rest_framework import permissions
 
 from .models import Follow
-from .serializers import FollowCreateSerializer, UserRetrieveSerializer, FollowUserIsFollowingSerializer, \
-    CurrentUserSerializer
+from .serializers import (
+    FollowCreateSerializer,
+    UserRetrieveSerializer,
+    FollowUserIsFollowingSerializer,
+    FollowUserIsBeingFollowedSerializer,
+)
 
 User = get_user_model()
 
@@ -17,9 +21,9 @@ class UserRetrieveAPIView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         queryset = User.objects.all().annotate(
-            followers_number=models.Count('followers')
+            following_number=models.Count('following', distinct=True)
         ).annotate(
-            following_number=models.Count('following')
+            followers_number=models.Count('followers', distinct=True)
         )
         return queryset
 
@@ -28,21 +32,26 @@ class UserRetrieveAPIView(generics.RetrieveAPIView):
         action = kwargs.get('action')
 
         if action in ('following', 'followers'):
+            # queryset = Anime.objects.all().filter(models.Q(reviews__user=user)).annotate(
+            #     user_score=models.F('reviews__score')
+            # )
             if action == 'following':
                 queryset = self.filter_queryset(
-                    User.objects.get(pk=user).following.all().values('user_is_following')
+                    User.objects.get(pk=user).following.all()
                 )
+                serializer_class = FollowUserIsBeingFollowedSerializer
             else:
                 queryset = self.filter_queryset(
-                    User.objects.get(pk=user).followers.all().values('user_is_following')
+                    User.objects.get(pk=user).followers.all()
                 )
+                serializer_class = FollowUserIsFollowingSerializer
+
             page = self.paginate_queryset(queryset)
             if page is not None:
-                serializer = CurrentUserSerializer(page, many=True)
-                print(queryset)
+                serializer = serializer_class(page, many=True)
                 return self.get_paginated_response(serializer.data)
-            print(queryset)
-            serializer = CurrentUserSerializer(queryset, many=True)
+
+            serializer = serializer_class(queryset, many=True)
             return Response(serializer.data)
 
         instance = self.get_object()
