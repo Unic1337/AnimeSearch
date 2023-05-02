@@ -1,13 +1,14 @@
 from django.db import models
 from rest_framework import permissions, viewsets
+from rest_framework.response import Response
 
 from user.permissions import IsOwnerOrReadOnly
 from .filters import ReviewFilter
-from .models import Anime, Character, Review
+from .models import Anime, Review
 from .filters import AnimeFilter
 from .serializers import (
     AnimeListSerializer,
-    CharacterSerializer,
+    #CharacterSerializer,
     AnimeRetrieveSerializer,
     ReviewRetrieveSerializer,
     ReviewCreateSerializer,
@@ -22,9 +23,11 @@ class AnimeReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
         user = self.request.user.id
         queryset = Anime.objects.all().annotate(
             user_score=models.Case(
-                models.When(models.Q(reviews__user=user), then=models.F('reviews__score'))
+                models.When(models.Q(reviews__user=user), then=models.F('reviews__score')),
+                default=None,
             )
         )
+
         return queryset
 
     def get_serializer_class(self):
@@ -34,10 +37,10 @@ class AnimeReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
             return AnimeRetrieveSerializer
 
 
-class CharacterReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Character.objects.all()
-    serializer_class = CharacterSerializer
-    permission_classes = (permissions.AllowAny,)
+# class CharacterReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
+#     queryset = Character.objects.all()
+#     serializer_class = CharacterSerializer
+#     permission_classes = (permissions.AllowAny,)
 
 
 class ReviewViewSet(viewsets.ModelViewSet):

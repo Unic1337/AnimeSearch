@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework.validators import UniqueTogetherValidator
 
-from .models import Anime, Character, Review
+from .models import Anime, Review, Type
 
 User = get_user_model()
 
@@ -36,15 +36,22 @@ class AnimeListSerializer(serializers.ModelSerializer):
                   'score', 'scored_by', 'user_score', 'year', 'type', 'images',)
 
 
+class TypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Type
+        fields = '__all__'
+
+
 class AnimeRetrieveSerializer(serializers.ModelSerializer):
     #user_score = ReviewRetrieveSerializer(many=True)
+    #type = TypeSerializer()
 
     class Meta:
         model = Anime
         fields = '__all__'
 
 
-class CharacterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Character
-        fields = '__all__'
+# class CharacterSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Character
+#         fields = '__all__'

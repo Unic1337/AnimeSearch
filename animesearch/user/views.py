@@ -4,6 +4,8 @@ from rest_framework import generics
 from django.contrib.auth import get_user_model
 from rest_framework import permissions
 
+from anime.models import Anime
+from anime.serializers import AnimeListSerializer
 from .models import Follow
 from .serializers import (
     FollowCreateSerializer,
@@ -31,20 +33,25 @@ class UserRetrieveAPIView(generics.RetrieveAPIView):
         user = kwargs.get('pk')
         action = kwargs.get('action')
 
-        if action in ('following', 'followers'):
-            # queryset = Anime.objects.all().filter(models.Q(reviews__user=user)).annotate(
-            #     user_score=models.F('reviews__score')
-            # )
+        if action in ('following', 'followers', 'reviews',):
             if action == 'following':
                 queryset = self.filter_queryset(
                     User.objects.get(pk=user).following.all()
                 )
                 serializer_class = FollowUserIsBeingFollowedSerializer
-            else:
+
+            if action == 'followers':
                 queryset = self.filter_queryset(
                     User.objects.get(pk=user).followers.all()
                 )
                 serializer_class = FollowUserIsFollowingSerializer
+
+            if action == 'reviews':
+                queryset = Anime.objects.all().filter(
+                    models.Q(reviews__user=user)).annotate(
+                    user_score=models.F('reviews__score')
+                )
+                serializer_class = AnimeListSerializer
 
             page = self.paginate_queryset(queryset)
             if page is not None:
