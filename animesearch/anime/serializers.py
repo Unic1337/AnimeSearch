@@ -1,8 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
 
-from .models import Anime, Review, Type
+from .models import *
 
 User = get_user_model()
 
@@ -27,24 +28,55 @@ class ReviewRetrieveSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class AnimeListSerializer(serializers.ModelSerializer):
-    user_score = serializers.IntegerField()
-
-    class Meta:
-        model = Anime
-        fields = ('id', 'title', 'title_english', 'title_japanese',
-                  'score', 'scored_by', 'user_score', 'year', 'type', 'images',)
-
-
 class TypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Type
+        fields = ('name',)
+
+
+class SourceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Source
+        fields = ('name',)
+
+
+class RatingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Rating
+        fields = ('name',)
+
+
+class GenreSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Genre
         fields = '__all__'
 
 
+class StudioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Studio
+        fields = '__all__'
+
+
+class AnimeListSerializer(serializers.ModelSerializer):
+    user_score = serializers.IntegerField()
+    type = TypeSerializer()
+    genres = GenreSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Anime
+        fields = ('id', 'title', 'title_english', 'score', 'user_score', 'year', 'type', 'images', 'genres',)
+
+
 class AnimeRetrieveSerializer(serializers.ModelSerializer):
-    #user_score = ReviewRetrieveSerializer(many=True)
-    #type = TypeSerializer()
+    #user_score = serializers.IntegerField()
+    type = SlugRelatedField(read_only=True, slug_field='name')
+    source = SlugRelatedField(read_only=True, slug_field='name')
+    rating = SlugRelatedField(read_only=True, slug_field='name')
+    genres = GenreSerializer(many=True, read_only=True)
+    # HyperlinkedRelatedField сделать с сериализаторе жанра поле юрл на себя(ссылка на вьюху)
+    # https://www.django-rest-framework.org/api-guide/relations/
+    studios = StudioSerializer(many=True, read_only=True)
 
     class Meta:
         model = Anime

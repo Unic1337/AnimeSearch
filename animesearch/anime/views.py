@@ -1,5 +1,6 @@
 from django.db import models
 from rest_framework import permissions, viewsets
+from django_filters import rest_framework
 from rest_framework.response import Response
 
 from user.permissions import IsOwnerOrReadOnly
@@ -17,6 +18,7 @@ from .serializers import (
 
 class AnimeReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (permissions.AllowAny,)
+    filter_backends = (rest_framework.DjangoFilterBackend,)
     filterset_class = AnimeFilter
 
     def get_queryset(self):
@@ -27,12 +29,12 @@ class AnimeReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
                 default=None,
             )
         )
-
         return queryset
 
     def get_serializer_class(self):
         if self.action == 'list':
-            return AnimeListSerializer
+            #return AnimeListSerializer
+            return AnimeRetrieveSerializer
         elif self.action == 'retrieve':
             return AnimeRetrieveSerializer
 
@@ -46,6 +48,8 @@ class AnimeReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
     filterset_class = ReviewFilter
+    # filter_backends = (rest_framework.DjangoFilterBackend,)
+    # filterset_fields = ('user', 'anime')
 
     def get_serializer_class(self):
         if self.action == 'list':

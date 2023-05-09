@@ -61,16 +61,17 @@ class Anime(models.Model):
     episodes = models.IntegerField(null=True)
     status = models.CharField(max_length=100)
     airing = models.BooleanField()
-    aired = models.CharField(max_length=100)
+    aired = models.JSONField()
     duration = models.CharField(max_length=100)
     rating = models.ForeignKey(Rating, on_delete=models.CASCADE)
     score = models.FloatField(null=True)
     scored_by = models.IntegerField(null=True)
     favorites = models.IntegerField()
     synopsis = models.TextField(null=True)
+    season = models.TextField(null=True)
     year = models.PositiveSmallIntegerField(null=True)
-    genres = models.ManyToManyField(Genre)
-    studios = models.ManyToManyField(Studio)
+    genres = models.ManyToManyField(Genre, related_name='genres', symmetrical=False)
+    studios = models.ManyToManyField(Studio, related_name='studios', symmetrical=False)
 
     class Meta:
         managed = False
