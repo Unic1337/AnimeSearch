@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework.validators import UniqueTogetherValidator
 
-from anime.serializers import ReviewRetrieveSerializer
+from anime.serializers import ReviewSerializer
 from .models import Follow
 
 User = get_user_model()
@@ -18,7 +18,7 @@ class CurrentUserSerializer(serializers.ModelSerializer):
 
 
 class UserRetrieveSerializer(serializers.ModelSerializer):
-    reviews = ReviewRetrieveSerializer(many=True)
+    reviews = ReviewSerializer(many=True)
     followers_number = serializers.IntegerField()
     following_number = serializers.IntegerField()
 

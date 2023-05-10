@@ -2,6 +2,7 @@ from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework.relations import SlugRelatedField
 from rest_framework.validators import UniqueTogetherValidator
+from django.db.models import F
 
 from .models import *
 
@@ -22,7 +23,7 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
         ]
 
 
-class ReviewRetrieveSerializer(serializers.ModelSerializer):
+class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = '__all__'
@@ -58,6 +59,20 @@ class StudioSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class CharacterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Character
+        fields = '__all__'
+
+
+class RoleSerializer(serializers.ModelSerializer):
+    character = CharacterSerializer()
+
+    class Meta:
+        model = Role
+        fields = ('character', 'role', 'favorites',)
+
+
 class AnimeListSerializer(serializers.ModelSerializer):
     user_score = serializers.IntegerField()
     type = TypeSerializer()
@@ -77,13 +92,12 @@ class AnimeRetrieveSerializer(serializers.ModelSerializer):
     # HyperlinkedRelatedField сделать с сериализаторе жанра поле юрл на себя(ссылка на вьюху)
     # https://www.django-rest-framework.org/api-guide/relations/
     studios = StudioSerializer(many=True, read_only=True)
+    characters = serializers.SerializerMethodField()
+
+    def get_characters(self, obj):
+        characters = obj.characters.all().order_by(F('favorites').desc(nulls_last=True))[:20]
+        return RoleSerializer(characters, many=True).data
 
     class Meta:
         model = Anime
         fields = '__all__'
-
-
-# class CharacterSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Character
-#         fields = '__all__'

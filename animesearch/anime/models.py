@@ -49,6 +49,38 @@ class Studio(models.Model):
         db_table = 'anime_studio'
 
 
+class Character(models.Model):
+    id = models.IntegerField(primary_key=True, null=False)
+    name = models.CharField(max_length=100)
+    images = models.JSONField()
+
+    class Meta:
+        managed = False
+        db_table = 'anime_character'
+        verbose_name = 'Character'
+        verbose_name_plural = 'Characters'
+        ordering = ['pk']
+
+
+class Role(models.Model):
+    ROLE_CHOICES = [
+        ('MAIN', 'Main'),
+        ('SUPP', 'Supporting'),
+    ]
+    id = models.IntegerField(primary_key=True, null=False)
+    character = models.ForeignKey(Character, on_delete=models.CASCADE)
+    favorites = models.IntegerField(null=True)
+    role = models.CharField(
+        max_length=4,
+        choices=ROLE_CHOICES,
+        default='MAIN',
+    )
+
+    class Meta:
+        managed = False
+        db_table = 'anime_role'
+
+
 class Anime(models.Model):
     id = models.IntegerField(primary_key=True, null=False)
     images = models.JSONField()
@@ -72,6 +104,7 @@ class Anime(models.Model):
     year = models.PositiveSmallIntegerField(null=True)
     genres = models.ManyToManyField(Genre, related_name='genres', symmetrical=False)
     studios = models.ManyToManyField(Studio, related_name='studios', symmetrical=False)
+    characters = models.ManyToManyField(Role, related_name='characters', symmetrical=False)
 
     class Meta:
         managed = False
@@ -79,22 +112,6 @@ class Anime(models.Model):
         verbose_name = 'Anime'
         verbose_name_plural = 'Anime'
         ordering = ['pk']
-
-
-# class Character(models.Model):
-#     id = models.IntegerField(primary_key=True, null=False)
-#     name = models.CharField(max_length=100)
-#     role = models.CharField(max_length=100)
-#     favorites = models.IntegerField()
-#     images = models.JSONField()
-#     anime = models.ForeignKey(Anime, related_name='characters', on_delete=models.CASCADE)
-#
-#     class Meta:
-#         managed = False
-#         db_table = 'anime_character'
-#         verbose_name = 'Character'
-#         verbose_name_plural = 'Characters'
-#         ordering = ['pk']
 
 
 class Review(models.Model):
