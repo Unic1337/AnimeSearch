@@ -73,12 +73,14 @@ class AnimeFilter(rest_framework.FilterSet):
     studios = FilterByFieldName(field_name='studios')
     status = rest_framework.CharFilter(field_name='status', lookup_expr='istartswith')
     season = rest_framework.CharFilter(field_name='season', lookup_expr='istartswith')
+    score = rest_framework.NumberFilter(field_name='anime__score')
+    scored_by = rest_framework.NumberFilter(field_name='anime__scored_by')
 
     class Meta:
         model = Anime
         fields = {
-            'score': ['exact', 'gt', 'lt'],
-            'scored_by': ['exact', 'gt', 'lt'],
+            #'score': ['exact', 'gt', 'lt'],
+            #'scored_by': ['exact', 'gt', 'lt'],
             'year': ['exact', 'gt', 'lt'],
         }
 

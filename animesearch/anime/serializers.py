@@ -84,7 +84,9 @@ class AnimeListSerializer(serializers.ModelSerializer):
 
 
 class AnimeRetrieveSerializer(serializers.ModelSerializer):
-    #user_score = serializers.IntegerField()
+    score = serializers.FloatField(read_only=True)
+    scored_by = serializers.IntegerField(read_only=True)
+    user_score = serializers.IntegerField()
     type = SlugRelatedField(read_only=True, slug_field='name')
     source = SlugRelatedField(read_only=True, slug_field='name')
     rating = SlugRelatedField(read_only=True, slug_field='name')

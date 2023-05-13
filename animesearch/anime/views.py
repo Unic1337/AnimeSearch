@@ -2,7 +2,7 @@ from django.db import models
 from rest_framework import permissions, viewsets, generics
 from django_filters import rest_framework
 from rest_framework.response import Response
-from django.db.models import F
+from django.db.models import F, Q, Avg
 
 from user.permissions import IsOwnerOrReadOnly
 from .filters import ReviewFilter
@@ -24,11 +24,14 @@ class AnimeReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
 
     def get_queryset(self):
         user = self.request.user.id
-        queryset = Anime.objects.all().annotate(
-            user_score=models.Case(
-                models.When(models.Q(reviews__user=user), then=models.F('reviews__score')),
-                default=None,
-            )
+        # queryset = Anime.objects.all().annotate(
+        #     user_score=models.Case(
+        #         models.When(models.Q(reviews__user=user), then=models.F('reviews__score')),
+        #         default=None,
+        #     )
+        # )
+        queryset = Anime.objects.annotate(
+            user_score=Avg('reviews__score', filter=Q(reviews__user=user))
         )
         return queryset
 
