@@ -94,11 +94,11 @@ class AnimeRetrieveSerializer(serializers.ModelSerializer):
     # HyperlinkedRelatedField сделать с сериализаторе жанра поле юрл на себя(ссылка на вьюху)
     # https://www.django-rest-framework.org/api-guide/relations/
     studios = StudioSerializer(many=True, read_only=True)
-    characters = serializers.SerializerMethodField()
+    #characters = serializers.SerializerMethodField()
 
-    def get_characters(self, obj):
-        characters = obj.characters.all().order_by(F('favorites').desc(nulls_last=True))[:20]
-        return RoleSerializer(characters, many=True).data
+    # def get_characters(self, obj):
+    #     characters = obj.characters.all().order_by(F('favorites').desc(nulls_last=True))[:20]
+    #     return RoleSerializer(characters, many=True).data
 
     class Meta:
         model = Anime

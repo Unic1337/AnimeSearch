@@ -5,7 +5,6 @@ from rest_framework.response import Response
 from django.db.models import F, Q, Avg
 
 from user.permissions import IsOwnerOrReadOnly
-from .filters import ReviewFilter
 from .models import Anime, Review, Character, Role
 from .filters import AnimeFilter
 from .serializers import (
@@ -44,13 +43,12 @@ class AnimeReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 class AnimeCharactersAPIView(generics.RetrieveAPIView):
-    queryset = Role.objects.all()
+    queryset = Anime.objects.all()
     serializer_class = RoleSerializer
     permission_classes = (permissions.AllowAny,)
 
     def retrieve(self, request, *args, **kwargs):
-        anime = kwargs.get('pk')
-        instance = Anime.objects.get(pk=anime).characters.all().order_by(F('favorites').desc(nulls_last=True))
+        instance = self.get_object().characters.order_by(F('favorites').desc(nulls_last=True))
         serializer = self.get_serializer(instance, many=True)
         return Response({'data': serializer.data})
 
@@ -63,17 +61,13 @@ class CharacterReadOnlyViewSet(viewsets.ReadOnlyModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     queryset = Review.objects.all()
-    filterset_class = ReviewFilter
-    # filter_backends = (rest_framework.DjangoFilterBackend,)
-    # filterset_fields = ('user', 'anime')
+    filter_backends = (rest_framework.DjangoFilterBackend,)
+    filterset_fields = ('user', 'anime')
 
     def get_serializer_class(self):
-        if self.action == 'list':
-            return ReviewSerializer
         if self.action == 'create':
             return ReviewCreateSerializer
-        if self.action in ('retrieve', 'partial_update', 'destroy'):
-            return ReviewSerializer
+        return ReviewSerializer
 
     def get_permissions(self):
         if self.action == 'create':

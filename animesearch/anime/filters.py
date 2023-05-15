@@ -1,5 +1,5 @@
 from django_filters import rest_framework
-from django.db.models import Q, F, QuerySet
+from django.db.models import Q, F, QuerySet, Avg, Count
 
 from .models import Anime, Review
 
@@ -32,16 +32,26 @@ class TitleFilter(rest_framework.Filter):
 
 class OrderByFieldNameFilter(rest_framework.Filter):
     def filter(self, qs, value):
-        if self.validate_field_name(value):
+        if value in ('score', '-score'):
             if value[0] == '-':
-                return qs.order_by(F(value[1:]).desc(nulls_last=True))
-            return qs.order_by(F(value).asc(nulls_last=True))
+                qs = qs.annotate(filter_field=Avg(f'reviews__score')).order_by(F('filter_field').desc(nulls_last=True))
+            qs = qs.annotate(filter_field=Avg(f'reviews__score')).order_by(F('filter_field').asc(nulls_last=True))
+
+        elif value in ('scored_by', '-scored_by'):
+            if value[0] == '-':
+                qs = qs.annotate(filter_field=Count(f'reviews')).order_by(F('filter_field').desc(nulls_last=True))
+            qs = qs.annotate(filter_field=Count(f'reviews')).order_by(F('filter_field').asc(nulls_last=True))
+
+        if self.validate_field_name(value):
+            qs = qs.order_by(F(value).asc(nulls_last=True))
+            if value[0] == '-':
+                qs = qs.order_by(F(value[1:]).desc(nulls_last=True))
         return qs
 
     @staticmethod
     def validate_field_name(name):
-        allowed_names = ['title', 'type', 'rating', 'score', 'scored_by', 'favorites', 'season', 'status',
-                         '-title', '-type', '-rating', '-score', '-scored_by', '-favorites', '-season', '-status']
+        allowed_names = ['title', 'type', 'rating', 'favorites', 'season', 'status',
+                         '-title', '-type', '-rating', '-favorites', '-season', '-status']
         return name in allowed_names
 
 
@@ -56,11 +66,18 @@ class FilterByFieldName(rest_framework.Filter):
         qs = qs.filter(**{lookup: values_list})
         return qs
 
-    @staticmethod
-    def check_field_name(name):
-        allowed_names = ['title', 'type', 'rating', 'score', 'scored_by', 'favorites', 'season', 'status',
-                         '-title', '-type', '-rating', '-score', '-scored_by', '-favorites', '-season', '-status']
-        return name in allowed_names
+
+class CustomNumberFilter(rest_framework.NumberFilter):
+    def filter(self, qs, value):
+        if value in EMPTY_VALUES:
+            return qs
+        if self.distinct:
+            qs = qs.distinct()
+        if self.field_name == 'score':
+            qs = qs.annotate(filter_field=Avg(f'reviews__score')).filter(filter_field=value)
+        if self.field_name == 'scored_by':
+            qs = qs.annotate(filter_field=Count(f'reviews')).filter(filter_field=value)
+        return qs
 
 
 class AnimeFilter(rest_framework.FilterSet):
@@ -73,22 +90,11 @@ class AnimeFilter(rest_framework.FilterSet):
     studios = FilterByFieldName(field_name='studios')
     status = rest_framework.CharFilter(field_name='status', lookup_expr='istartswith')
     season = rest_framework.CharFilter(field_name='season', lookup_expr='istartswith')
-    score = rest_framework.NumberFilter(field_name='anime__score')
-    scored_by = rest_framework.NumberFilter(field_name='anime__scored_by')
+    score = CustomNumberFilter(field_name='score')
+    scored_by = CustomNumberFilter(field_name='scored_by')
 
     class Meta:
         model = Anime
         fields = {
-            #'score': ['exact', 'gt', 'lt'],
-            #'scored_by': ['exact', 'gt', 'lt'],
             'year': ['exact', 'gt', 'lt'],
-        }
-
-
-class ReviewFilter(rest_framework.FilterSet):
-    class Meta:
-        model = Review
-        fields = {
-            'user': ['exact'],
-            'anime': ['exact'],
         }

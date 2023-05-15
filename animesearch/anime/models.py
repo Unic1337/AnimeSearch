@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth import get_user_model
-from django.db.models import Avg, F
+from django.db.models import Avg, F, Count
 
 User = get_user_model()
 
@@ -97,8 +97,6 @@ class Anime(models.Model):
     aired = models.JSONField()
     duration = models.CharField(max_length=100)
     rating = models.ForeignKey(Rating, on_delete=models.CASCADE)
-    #score = models.FloatField(null=True)
-    #scored_by = models.IntegerField(null=True)
     favorites = models.IntegerField()
     synopsis = models.TextField(null=True)
     season = models.TextField(null=True)
@@ -112,7 +110,7 @@ class Anime(models.Model):
         return self.reviews.aggregate(Avg('score'))['score__avg']
 
     def scored_by(self):
-        return self.reviews.count()
+        return self.reviews.count()  # reviews.aggregate(Count('score'))['score__count']
 
     class Meta:
         managed = False
